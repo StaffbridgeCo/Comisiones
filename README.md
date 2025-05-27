@@ -1,4 +1,4 @@
-# 📦 API REST - Gestión de Envíos y Rutas Logísticas
+# 📦 API REST - Gestión de Comisiones
 
 Este es un proyecto backend desarrollado en **TypeScript** con **Express**, que permite gestionar envíos, optimizar rutas y realizar seguimiento en tiempo real. Incluye autenticación con JWT, caché con Redis, pruebas unitarias/integración, y arquitectura limpia (Clean Architecture).
 
