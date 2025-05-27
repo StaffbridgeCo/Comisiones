@@ -10,12 +10,12 @@ export default function Dashboard() {
   const [isOpen, setIsOpen] = useState(false)
 
   const opciones = [
-    { label: "Registrar Transportista", path: "/registrar-transportista", icon: <FaTruck /> },
-    { label: "Registrar Envío", path: "/registrar-envio", icon: <FaPlus /> },
-    { label: "Asignar Ruta", path: "/asignar-ruta", icon: <FaRoute /> },
-    { label: "Ver Estado de Envío", path: "/ver-estado", icon: <FaEye /> },
-    { label: "Actualizar Estado", path: "/actualizar-estado", icon: <FaSync /> },
-    { label: "Listar Envíos", path: "/envios", icon: <FaList /> },
+    { label: "Data", path: "/registrar-transportista", icon: <FaTruck /> },
+    { label: "Brokers", path: "/registrar-envio", icon: <FaPlus /> },
+    { label: "Tiers", path: "/asignar-ruta", icon: <FaRoute /> },
+    { label: "Loads for this period ", path: "/ver-estado", icon: <FaEye /> },
+    { label: "Summary", path: "/actualizar-estado", icon: <FaSync /> },
+    { label: "Broker's Payment Exceptions", path: "/envios", icon: <FaList /> },
   ]
 
   const handleNavigation = (path: string) => {
@@ -44,7 +44,7 @@ export default function Dashboard() {
       {/* Contenido principal */}
       <div className="p-12 text-center">
         <h1 className="text-4xl font-bold mb-4 tracking-wide">Dashboard Corporativo</h1>
-        <p className="text-lg text-gray-300">Gestiona tus envíos, transportistas y rutas de forma eficiente.</p>
+        <p className="text-lg text-gray-300">Gestiona tus comisiones de una manera eficiente.</p>
       </div>
 
       {/* Sidebar */}

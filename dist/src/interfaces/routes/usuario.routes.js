@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const usuario_controller_1 = require("../controllers/usuario.controller");
+const usuarioRegistro_controller_1 = require("../controllers/usuarioRegistro.controller");
 const authMiddleware_1 = require("../middlewares/authMiddleware");
 const router = (0, express_1.Router)();
 /**
@@ -42,7 +43,7 @@ const router = (0, express_1.Router)();
  *       400:
  *         description: Error al registrar usuario
  */
-router.post('/registrar', usuario_controller_1.registrar);
+router.post('/registrar', usuarioRegistro_controller_1.registrar);
 /**
  * @swagger
  * /usuarios/login:

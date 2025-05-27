@@ -4,8 +4,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LoginUsuario = void 0;
+//src/domain/use-cases/loginUsuario.ts
 const dotenv_1 = __importDefault(require("dotenv"));
-dotenv_1.default.config(); // Esto debe ir antes de usar process.env
+dotenv_1.default.config();
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 class LoginUsuario {

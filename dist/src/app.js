@@ -3,35 +3,26 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-// src/app.ts
 const express_1 = __importDefault(require("express"));
-const usuario_routes_1 = __importDefault(require("./interfaces/routes/usuario.routes"));
 const redisClient_1 = require("./shared/redisClient");
 const db_1 = require("./config/db");
 const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
 const swagger_1 = require("./config/swagger");
-const envio_routes_1 = __importDefault(require("./interfaces/routes/envio.routes"));
-const transportista_routes_1 = __importDefault(require("./interfaces/routes/transportista.routes"));
-const envioEstado_routes_1 = __importDefault(require("./interfaces/routes/envioEstado.routes"));
-const filtros_routes_1 = __importDefault(require("./interfaces/routes/filtros.routes"));
 const cors_1 = __importDefault(require("cors"));
+const routes_1 = require("./interfaces/routes");
 const app = (0, express_1.default)();
 // Configuración de CORS
 app.use((0, cors_1.default)({
-    origin: 'http://localhost:3000', // Permite solicitudes solo desde tu frontend (ajústalo si tu frontend está en otro puerto/dominio)
-    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Métodos permitidos
-    allowedHeaders: ['Content-Type', 'Authorization'], // Encabezados permitidos
+    origin: ['http://localhost:5173', 'https://scardons.github.io'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 // Documentación Swagger
 app.use('/api-docs', swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swagger_1.swaggerSpec));
 // Middleware para manejar JSON
 app.use(express_1.default.json());
-// Rutas para el manejo de usuarios, envíos y filtros
-app.use('/usuarios', usuario_routes_1.default);
-app.use('/envios', envio_routes_1.default);
-app.use("/transportistas", transportista_routes_1.default);
-app.use("/envio", envioEstado_routes_1.default);
-app.use('/api/envios', filtros_routes_1.default); // Ruta de filtros
+// Configurar las rutas desde interfaces/routes.ts
+(0, routes_1.setupRoutes)(app);
 // Ruta para verificar conexión a MySQL
 app.get('/', async (req, res) => {
     try {

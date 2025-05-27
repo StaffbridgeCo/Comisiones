@@ -3,9 +3,6 @@ import GreenBar from '../src/components/GreenBar';
 import VideoSection from '../src/components/VideoSection';
 import AuthButtons from '../src/components/AuthButtons';
 import MainContent from '../src/components/MainContent';
-import ContactSection from '../src/components/ContactSection';
-import SolutionsSection from '../src/components/SolutionsSection';
-import ScrollLinked from '../src/components/ScrollLinked';
 import { ParticlesBackground } from './components/ParticlesBackground';
 import ParallaxText from './components/ParallaxText'; 
 
@@ -29,12 +26,12 @@ export default function Home() {
         <ParallaxText 
           text="¡Bienvenido a Empresa Logística!" 
           baseVelocity={-5} 
-          className="my-10 text-4xl text-white bg-gradient-to-r from-blue-800 to-blue-400 font-semibold uppercase font-sans"
+          className="my-10 text-4xl text-white bg-gradient-to-r from-blue-800 to-yellow-400 font-semibold uppercase font-sans"
         />
         <ParallaxText 
           text="Innovación y eficiencia en cada envío 🚚" 
           baseVelocity={5} 
-          className="my-10 text-4xl text-white bg-gradient-to-r from-blue-800 to-blue-400 font-semibold uppercase font-sans"
+          className="my-10 text-4xl text-white bg-gradient-to-r from-blue-800 to-yellow-400 font-semibold uppercase font-sans"
         />
       </section>
 
@@ -44,14 +41,8 @@ export default function Home() {
       {/* Contenido principal */}
       <MainContent />
       
-      {/* Sección de desplazamiento vinculado */}
-      <ScrollLinked />
       
-      {/* Sección de contacto */}
-      <ContactSection />
-      
-      {/* Sección de soluciones */}
-      <SolutionsSection />
+
     </div>
   );
 }
