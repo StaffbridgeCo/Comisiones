@@ -13,10 +13,12 @@ export const uploadExcelController = async (req: Request, res: Response): Promis
     const repo = new MySQLDataRepository();
 
 try {
-    const insertedData = await cargarDatosDesdeExcel(file.buffer, repo);
-    res.json(insertedData); // ✅ sin return
-  } catch (error) {
-    console.error("Error al procesar el Excel:", error);
-    res.status(500).json({ message: "Error al procesar el archivo" });
-  }
+  const insertedData = await cargarDatosDesdeExcel(file.buffer, repo);
+  res.json(insertedData);
+} catch (error: any) {
+  console.error("Error al procesar el Excel:", error);
+  // Si el error tiene message, lo envías, si no, un mensaje genérico
+  res.status(400).json({ message: error.message || "Error al procesar el archivo" });
+}
+
 };

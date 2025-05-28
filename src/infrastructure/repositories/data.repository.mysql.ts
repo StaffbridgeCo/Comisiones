@@ -1,4 +1,3 @@
-//src/infrastructure/repositories/data.repository.mysql.ts
 import { pool } from "../../config/db";
 import { Data } from "../../domain/entities/Data";
 import { IDataRepository } from "../../domain/repositories/IDataRepository";
@@ -22,5 +21,21 @@ export class MySQLDataRepository implements IDataRepository {
 
     const values = data.map((row) => Object.values(row));
     await pool.query(query, [values]);
+  }
+
+  async getAll(): Promise<Data[]> {
+    const [rows] = await pool.query("SELECT * FROM data");
+    return rows as Data[];
+  }
+
+  // ✅ Nuevo método para verificar si hay Load Ids repetidos
+  async findExistingLoadIds(loadIds: string[]): Promise<string[]> {
+    if (loadIds.length === 0) return [];
+
+    const placeholders = loadIds.map(() => "?").join(",");
+    const query = `SELECT load_id FROM data WHERE load_id IN (${placeholders})`;
+
+    const [rows] = await pool.query(query, loadIds);
+    return (rows as any[]).map((row) => row.load_id);
   }
 }

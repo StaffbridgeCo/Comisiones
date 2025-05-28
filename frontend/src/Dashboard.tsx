@@ -10,7 +10,7 @@ export default function Dashboard() {
   const [isOpen, setIsOpen] = useState(false)
 
   const opciones = [
-    { label: "Data", path: "/registrar-transportista", icon: <FaTruck /> },
+    { label: "Data", path: "/cargar-excel", icon: <FaTruck /> },
     { label: "Brokers", path: "/registrar-envio", icon: <FaPlus /> },
     { label: "Tiers", path: "/asignar-ruta", icon: <FaRoute /> },
     { label: "Loads for this period ", path: "/ver-estado", icon: <FaEye /> },

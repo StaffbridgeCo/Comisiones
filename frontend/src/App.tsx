@@ -7,7 +7,7 @@ import LoginForm from './Login';
 import RegisterForm from './Registro';
 import Dashboard from './Dashboard';
 import Home from './Home';
-
+import CargarExcelPage from './CargarExcelPage';
 
 function App() {
   return (
@@ -17,6 +17,9 @@ function App() {
         <Route path="/login" element={<LoginForm />} />
         <Route path="/Dashboard" element={<Dashboard />} />
         <Route path="/" element={<Home />} />
+
+        {/* Nueva ruta para la página de carga de Excel */}
+        <Route path="/cargar-excel" element={<CargarExcelPage />} />
       </Routes>
     </Router>
   );

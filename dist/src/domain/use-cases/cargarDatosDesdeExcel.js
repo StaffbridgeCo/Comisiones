@@ -17,24 +17,26 @@ function sanitizeCurrency(value) {
         .replace(",", ".");
     return parseFloat(clean) || 0;
 }
-// ✅ Función para formatear fecha como dd/mm/yyyy
-function formatDateToDDMMYYYY(date) {
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
+// Formatear fecha como yyyy-mm-dd (formato MySQL)
+function formatDateToMySQL(date) {
     const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
 }
-// ✅ Función para convertir fechas Excel (string o serial) a formato colombiano
+// Convertir fechas Excel (string o serial) a formato MySQL yyyy-mm-dd
 function parseExcelDate(value) {
     if (!value)
         return null;
     let date;
     if (typeof value === "number") {
+        // Convertir número serial Excel a fecha JS
         const utc_days = Math.floor(value - 25569);
         const utc_value = utc_days * 86400;
         date = new Date(utc_value * 1000);
     }
     else if (typeof value === "string") {
+        // Suponemos formato dd/mm/yyyy
         const [day, month, year] = value.split("/").map(Number);
         if (!day || !month || !year)
             return null;
@@ -43,14 +45,13 @@ function parseExcelDate(value) {
     else {
         return null;
     }
-    return formatDateToDDMMYYYY(date);
+    return formatDateToMySQL(date);
 }
 // Función principal para cargar datos desde Excel
 const cargarDatosDesdeExcel = async (buffer, dataRepository) => {
     const workbook = xlsx_1.default.read(buffer, { type: "buffer" });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const rawData = xlsx_1.default.utils.sheet_to_json(sheet);
-    console.log(Object.keys(rawData[0]));
     const jsonData = rawData.map((row) => ({
         load_id: row["Load Id"] ?? null,
         dispatched: row["Dispatched"] ?? null,
@@ -97,6 +98,12 @@ const cargarDatosDesdeExcel = async (buffer, dataRepository) => {
         product_category: row["Product Category"] ?? null,
         month2: row["Month2"] ?? null,
     }));
+    // Validar Load Ids repetidos en la BD antes de insertar
+    const loadIds = jsonData.map((d) => d.load_id).filter(Boolean);
+    const existingIds = await dataRepository.findExistingLoadIds(loadIds);
+    if (existingIds.length > 0) {
+        throw new Error(`❌ Los siguientes Load Id ya existen: ${existingIds.join(", ")}`);
+    }
     await dataRepository.insertMany(jsonData);
     return jsonData;
 };

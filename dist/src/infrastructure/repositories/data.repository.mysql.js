@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MySQLDataRepository = void 0;
-//src/infrastructure/repositories/data.repository.mysql.ts
 const db_1 = require("../../config/db");
 class MySQLDataRepository {
     async insertMany(data) {
@@ -21,6 +20,19 @@ class MySQLDataRepository {
     `;
         const values = data.map((row) => Object.values(row));
         await db_1.pool.query(query, [values]);
+    }
+    async getAll() {
+        const [rows] = await db_1.pool.query("SELECT * FROM data");
+        return rows;
+    }
+    // ✅ Nuevo método para verificar si hay Load Ids repetidos
+    async findExistingLoadIds(loadIds) {
+        if (loadIds.length === 0)
+            return [];
+        const placeholders = loadIds.map(() => "?").join(",");
+        const query = `SELECT load_id FROM data WHERE load_id IN (${placeholders})`;
+        const [rows] = await db_1.pool.query(query, loadIds);
+        return rows.map((row) => row.load_id);
     }
 }
 exports.MySQLDataRepository = MySQLDataRepository;

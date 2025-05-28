@@ -6,8 +6,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.setupRoutes = void 0;
 const usuario_routes_1 = __importDefault(require("./routes/usuario.routes"));
 const upload_routes_1 = __importDefault(require("./../interfaces/routes/upload.routes"));
+const data_routes_1 = __importDefault(require("./routes/data.routes"));
 const setupRoutes = (app) => {
     app.use('/usuarios', usuario_routes_1.default);
     app.use("/api", upload_routes_1.default);
+    app.use("/", data_routes_1.default);
 };
 exports.setupRoutes = setupRoutes;

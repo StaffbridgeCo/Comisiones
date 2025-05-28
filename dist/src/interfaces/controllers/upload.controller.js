@@ -12,11 +12,12 @@ const uploadExcelController = async (req, res) => {
     const repo = new data_repository_mysql_1.MySQLDataRepository();
     try {
         const insertedData = await (0, cargarDatosDesdeExcel_1.cargarDatosDesdeExcel)(file.buffer, repo);
-        res.json(insertedData); // ✅ sin return
+        res.json(insertedData);
     }
     catch (error) {
         console.error("Error al procesar el Excel:", error);
-        res.status(500).json({ message: "Error al procesar el archivo" });
+        // Si el error tiene message, lo envías, si no, un mensaje genérico
+        res.status(400).json({ message: error.message || "Error al procesar el archivo" });
     }
 };
 exports.uploadExcelController = uploadExcelController;
