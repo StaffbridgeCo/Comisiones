@@ -20,20 +20,7 @@ ul li:hover {
   transform: translateX(20px); /* Mueve a la derecha cuando el mouse pasa por encima */
 }
 
-/* Reset básico */
-html, body {
-  @apply bg-background text-neon-green; /* Aquí puedes usar las variables de Tailwind para colores */
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  width: 100%;
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-}
+
 
 /* Para que #root siempre ocupe toda la pantalla */
 #root {

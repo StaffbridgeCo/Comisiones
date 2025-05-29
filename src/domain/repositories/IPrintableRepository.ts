@@ -2,5 +2,5 @@
 import { Printable } from '../entities/Printable';
 
 export interface IPrintableRepository {
-  findByBroker(broker: string): Promise<Printable[]>;
+  findByBroker(broker: string, from?: string, to?: string): Promise<Printable[]>;
 }
