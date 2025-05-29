@@ -16,36 +16,61 @@ function sanitizeCurrency(value: string | number): number {
   return parseFloat(clean) || 0;
 }
 
-// Formatear fecha como yyyy-mm-dd (formato MySQL)
-function formatDateToMySQL(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+// Formatear fecha como yyyy-mm-dd (MySQL) sin desfases ni uso de zona horaria
+function formatDateToMySQL(year: number, month: number, day: number): string {
+  return `${year.toString().padStart(4, "0")}-${month.toString().padStart(2, "0")}-${day
+    .toString()
+    .padStart(2, "0")}`;
 }
 
-// Convertir fechas Excel (string o serial) a formato MySQL yyyy-mm-dd
+// Convierte fechas de Excel (número o string "dd/mm/yyyy") a formato MySQL sin desfase
 function parseExcelDate(value: string | number): string | null {
   if (!value) return null;
 
-  let date: Date;
+  try {
+    if (typeof value === "number") {
+      const excelSerial = Math.floor(value);
+      const correctedSerial = excelSerial > 59 ? excelSerial - 1 : excelSerial;
 
-  if (typeof value === "number") {
-    // Convertir número serial Excel a fecha JS
-    const utc_days = Math.floor(value - 25569);
-    const utc_value = utc_days * 86400;
-    date = new Date(utc_value * 1000);
-  } else if (typeof value === "string") {
-    // Suponemos formato dd/mm/yyyy
-    const [day, month, year] = value.split("/").map(Number);
-    if (!day || !month || !year) return null;
-    date = new Date(year, month - 1, day);
-  } else {
+      // Excel base date: 1899-12-31 (serial 1 = 1900-01-01)
+      const baseYear = 1899;
+      const baseMonth = 11; // diciembre (0-index)
+      const baseDay = 31;
+
+      // Crear fecha base
+      const baseDate = new Date(baseYear, baseMonth, baseDay);
+
+      // Sumar días serial sin tocar el tiempo
+      const targetDay = baseDate.getDate() + correctedSerial;
+      const targetDate = new Date(baseYear, baseMonth, targetDay);
+
+      // Obtener partes sin desfase
+      const day = targetDate.getDate();
+      const month = targetDate.getMonth() + 1;
+      const year = targetDate.getFullYear();
+
+      return formatDateToMySQL(year, month, day);
+
+    } else if (typeof value === "string") {
+      const parts = value.split("/");
+      if (parts.length !== 3) return null;
+
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10);
+      const year = parseInt(parts[2], 10);
+
+      if (!day || !month || !year) return null;
+
+      return formatDateToMySQL(year, month, day);
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Error parseando fecha:", value, error);
     return null;
   }
-
-  return formatDateToMySQL(date);
 }
+
 
 // Función principal para cargar datos desde Excel
 export const cargarDatosDesdeExcel = async (

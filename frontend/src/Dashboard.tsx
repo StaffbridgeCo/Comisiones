@@ -11,7 +11,7 @@ export default function Dashboard() {
 
   const opciones = [
     { label: "Data", path: "/cargar-excel", icon: <FaTruck /> },
-    { label: "Brokers", path: "/registrar-envio", icon: <FaPlus /> },
+    { label: "Brokers", path: "/printable-view", icon: <FaPlus /> },
     { label: "Tiers", path: "/asignar-ruta", icon: <FaRoute /> },
     { label: "Loads for this period ", path: "/ver-estado", icon: <FaEye /> },
     { label: "Summary", path: "/actualizar-estado", icon: <FaSync /> },

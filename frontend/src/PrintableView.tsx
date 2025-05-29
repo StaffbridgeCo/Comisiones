@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 interface Printable {
@@ -10,32 +11,18 @@ interface Printable {
 }
 
 const brokers = [
-  'Calume',
-  'Dave',
-  'Orquidea',
-  'Tamayo',
-  'Johan',
-  'Shaun',
-  'Jay M',
-  'John',
-  'Ralph',
-  'Penny',
-  'Salomon',
-  'Santiago',
-  'Juana',
-  'Florez',
-  'Benton',
-  'Felipe',
-  'Andres',
-  'Blake',
-  'Vanesa Pit',
-  'Genaro Pit'
+  'Calume', 'Dave', 'Orqui', 'Steve', 'Johan', 'Shaun', 'Jay M', 'John',
+  'Ralph', 'Penny', 'Sal', 'Santi', 'Juana', 'Florez', 'Benton', 'Felipe',
+  'Andres', 'Blake', 'Pitman Farms Inc', 'Genaro Pit'
 ];
+
 export default function PrintableView() {
   const [broker, setBroker] = useState('');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [data, setData] = useState<Printable[]>([]);
+  const [percentages, setPercentages] = useState<{ [key: string]: string }>({});
+  const navigate = useNavigate();
 
   const handleSearch = async () => {
     try {
@@ -49,6 +36,10 @@ export default function PrintableView() {
       console.error('Error fetching data', err);
       alert('Hubo un error consultando los datos');
     }
+  };
+
+  const handlePercentageChange = (loadId: string, value: string) => {
+    setPercentages(prev => ({ ...prev, [loadId]: value }));
   };
 
   return (
@@ -69,29 +60,62 @@ export default function PrintableView() {
         <button onClick={handleSearch} className="bg-blue-600 text-white px-4 py-2 rounded">
           Buscar
         </button>
+
+        <button
+          onClick={() => navigate('/dashboard')}
+          className="bg-gray-500 text-white px-4 py-2 rounded"
+        >
+          Volver al Dashboard
+        </button>
       </div>
 
       {data.length > 0 ? (
-        <table className="w-full border border-collapse">
+        <table className="w-full border-collapse border border-black">
           <thead>
             <tr className="bg-gray-200">
-              <th className="border px-2 py-1">ID</th>
-              <th className="border px-2 py-1">Fecha</th>
-              <th className="border px-2 py-1">Cliente</th>
-              <th className="border px-2 py-1">Broker</th>
-              <th className="border px-2 py-1">Margen</th>
+              <th className="border border-black px-2 py-1">ID</th>
+              <th className="border border-black px-2 py-1">Fecha</th>
+              <th className="border border-black px-2 py-1">Cliente</th>
+              <th className="border border-black px-2 py-1">Broker</th>
+              <th className="border border-black px-2 py-1">Percentage (%)</th>
+              <th className="border border-black px-2 py-1">Margen</th>
+              <th className="border border-black px-2 py-1">Resultado</th>
             </tr>
           </thead>
           <tbody>
-            {data.map((d) => (
-              <tr key={d.load_id}>
-                <td className="border px-2 py-1">{d.load_id}</td>
-                <td className="border px-2 py-1">{new Date(d.billing_date).toLocaleDateString()}</td>
-                <td className="border px-2 py-1">{d.customer}</td>
-                <td className="border px-2 py-1">{d.broker}</td>
-                <td className="border px-2 py-1">${d.gross_margin}</td>
-              </tr>
-            ))}
+            {data.map((d) => {
+              const inputValue = percentages[d.load_id] ?? '';
+              const parsedPercentage = parseFloat(inputValue);
+              const gross = parseFloat(d.gross_margin);
+              const resultado =
+                !isNaN(parsedPercentage) && !isNaN(gross)
+                  ? (gross * (parsedPercentage / 100)).toFixed(2)
+                  : '0.00';
+
+              return (
+                <tr key={d.load_id}>
+                  <td className="border border-black px-2 py-1">{d.load_id}</td>
+                  <td className="border border-black px-2 py-1">
+                    {new Date(d.billing_date).toLocaleDateString()}
+                  </td>
+                  <td className="border border-black px-2 py-1">{d.customer}</td>
+                  <td className="border border-black px-2 py-1">{d.broker}</td>
+                  <td className="border border-black px-2 py-1">
+                    <input
+                      type="number"
+                      step="any"
+                      min="0"
+                      max="100"
+                      className="w-20 border border-black px-1"
+                      value={inputValue}
+                      onChange={(e) => handlePercentageChange(d.load_id, e.target.value)}
+                    />
+                  </td>
+                  <td className="border border-black px-2 py-1">${d.gross_margin}</td>
+                  <td className="border border-black px-2 py-1">${resultado}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       ) : (

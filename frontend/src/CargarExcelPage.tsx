@@ -138,12 +138,6 @@ const handleUpload = async () => {
 };
 
 
-
-
-
-
-
-
   return (
     <div className="p-8 bg-white text-black min-h-screen">
       <h1 className="text-2xl font-bold mb-4">Cargar archivo Excel</h1>
@@ -164,12 +158,13 @@ const handleUpload = async () => {
         {loading ? "Subiendo..." : "Subir archivo"}
       </button>
 
-      {datos.length > 0 && (
-        <div className="mt-8">
-          <h2 className="text-xl font-semibold mb-2">Datos cargados:</h2>
-          <div className="overflow-x-auto max-h-[400px] overflow-y-scroll">
-            <table className="table-auto border border-gray-300 w-full text-sm">
-              <thead>
+{datos.length > 0 && (
+  <div className="mt-8">
+    <h2 className="text-xl font-semibold mb-2">Datos cargados:</h2>
+
+    <div className="overflow-x-auto max-h-[400px] overflow-y-scroll mt-6 mx-auto border rounded-lg p-4 shadow-lg w-[95%] bg-white">
+      <table className="table-auto border border-gray-300 w-full text-sm">
+        <thead>
                 <tr>
 <th className="border px-2 py-1">Load ID</th>
       <th className="border px-2 py-1">Dispatched</th>
