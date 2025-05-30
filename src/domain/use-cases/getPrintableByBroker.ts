@@ -1,14 +1,35 @@
 // src/domain/use-cases/getPrintableByBroker.ts
-//reglas de los brokers
+//reglas de los brokers aca puedo poner mas reglas
 import { IPrintableRepository } from '../repositories/IPrintableRepository';
 
-const brokerRules: Record<string, { includeBrokers: string[]; excludeCustomers: string[] }> = {
+const brokerRules: Record<
+  string,
+  {
+    includeBrokers?: string[];
+    excludeCustomers?: string[];
+    includeConditionalBrokers?: {
+      broker: string;
+      filter: (entry: any) => boolean;
+    }[];
+  }
+> = {
   Calume: {
     includeBrokers: ['Orqui'],
     excludeCustomers: ['24TONS'],
   },
-  // Aquí puedes agregar más reglas si otros brokers necesitan lógica especial
+  John: {
+    includeConditionalBrokers: [
+      {
+        broker: 'Dave',
+        filter: (entry) => entry.customer === 'OM Produce',
+      },
+    ],
+  },
+  'Jay M': {
+    includeBrokers: ['Shaun'],
+  },
 };
+
 
 export const getPrintableByBroker = async (
   broker: string,
@@ -16,15 +37,12 @@ export const getPrintableByBroker = async (
   from?: string,
   to?: string
 ) => {
-  // Buscar datos del broker principal
   const mainData = await repo.findByBroker(broker, from, to);
-
-  // Ver si hay reglas para el broker
   const rules = brokerRules[broker];
 
   let extraData: any[] = [];
 
-  // Si el broker tiene brokers adicionales para incluir, los buscamos
+  // includeBrokers simples (sin filtro)
   if (rules?.includeBrokers?.length) {
     for (const extraBroker of rules.includeBrokers) {
       const data = await repo.findByBroker(extraBroker, from, to);
@@ -32,13 +50,21 @@ export const getPrintableByBroker = async (
     }
   }
 
-  // Unimos todos los datos
+  // includeConditionalBrokers con filtros personalizados
+  if (rules?.includeConditionalBrokers?.length) {
+    for (const { broker: conditionalBroker, filter } of rules.includeConditionalBrokers) {
+      const data = await repo.findByBroker(conditionalBroker, from, to);
+      const filtered = data.filter(filter);
+      extraData = extraData.concat(filtered);
+    }
+  }
+
   let allData = [...mainData, ...extraData];
 
-  // Si hay customers a excluir, los filtramos
+  // Filtro de customers excluidos
   if (rules?.excludeCustomers?.length) {
     allData = allData.filter(
-      (entry) => !rules.excludeCustomers.includes(entry.customer)
+      (entry) => !rules.excludeCustomers!.includes(entry.customer)
     );
   }
 

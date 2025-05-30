@@ -31,7 +31,6 @@ export default function PrintableView() {
 
   //esto es para la tabla de porcentajes
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [brokerSeleccionado ] = useState<string>('calume'); 
 
   
 
@@ -58,8 +57,6 @@ mainTableData.forEach((fila) => {
     }
   });
 
-
-  console.log('Sugerencias aplicadas:', nuevos);
 
   setPercentages(nuevos);
   setShowSuggestions(false);
@@ -155,25 +152,31 @@ return (
         >
           Volver al Dashboard
         </button>
-        {broker === 'Calume' && (
+        {[
+          'calume', 'dave', 'orqui', 'steve', 'johan', 'shaun', 'jay m', 'john',
+          'ralph', 'penny', 'sal', 'santi', 'juana', 'florez', 'benton', 'felipe',
+          'andres', 'blake', 'pitman farms inc', 'genaro pit'
+          ].includes(broker.toLowerCase()) && (
           <button
             onClick={() => setShowSuggestions((prev) => !prev)}
             className="bg-green-600 text-white px-4 py-2 rounded"
           >
             Sugerencia de porcentaje
           </button>
-        )}
+          )}
+
       </div>
     </div>
 
 
-{showSuggestions && (
+{showSuggestions && broker && (
   <SugerenciasPorcentaje
-    broker={brokerSeleccionado}
+    broker={broker.toLowerCase()}
     onAplicar={manejarAplicacionDePorcentajes}
     onClose={() => setShowSuggestions(false)}
   />
 )}
+
 
 
 
