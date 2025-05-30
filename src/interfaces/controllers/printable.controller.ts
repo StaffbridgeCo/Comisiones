@@ -1,3 +1,4 @@
+//src/interfaces/controllers/printable.controller.ts
 import { RequestHandler } from 'express';
 import { getPrintableByBroker } from '../../domain/use-cases/getPrintableByBroker';
 import { printableRepositoryMySQL } from '../../infrastructure/repositories/printable.repository.mysql';

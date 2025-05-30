@@ -1,12 +1,16 @@
+//frontend/src/PrintableView.tsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { calculateCommissionData } from './components/calculateCommissions'; 
+import SugerenciasPorcentaje from './components/SugerenciasPorcentaje'
 
 interface Printable {
   load_id: string;
   billing_date: string;
   customer: string;
   broker: string;
+  percentage?: number;
   gross_margin: string;
   commissions?: string;
 }
@@ -24,6 +28,46 @@ export default function PrintableView() {
   const [data, setData] = useState<Printable[]>([]);
   const [percentages, setPercentages] = useState<{ [key: string]: string }>({});
   const navigate = useNavigate();
+
+  //esto es para la tabla de porcentajes
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [brokerSeleccionado ] = useState<string>('calume'); 
+
+  
+
+// Esta es la función que se llama desde SugerenciasPorcentaje Tabla principal
+const manejarAplicacionDePorcentajes = (sugerencias: { empresa: string; porcentaje: number }[]) => {
+  const nuevos = { ...percentages };
+
+mainTableData.forEach((fila) => {
+  const sugerencia = sugerencias.find(
+    (s) => s.empresa.toLowerCase().trim() === fila.customer.toLowerCase().trim()
+  );
+
+  if (sugerencia) {
+    nuevos[fila.load_id] = sugerencia.porcentaje.toString();
+  }
+});
+// Para adjustments
+  adjustments.forEach((adj) => {
+    const sugerencia = sugerencias.find(
+      (s) => s.empresa.toLowerCase().trim() === adj.customer.toLowerCase().trim()
+    );
+    if (sugerencia) {
+      nuevos[adj.load_id] = sugerencia.porcentaje.toString();
+    }
+  });
+
+
+  console.log('Sugerencias aplicadas:', nuevos);
+
+  setPercentages(nuevos);
+  setShowSuggestions(false);
+};
+
+
+
+
 
   const handleSearch = async () => {
     if (from && to && new Date(from) > new Date(to)) {
@@ -44,154 +88,293 @@ export default function PrintableView() {
     }
   };
 
-  const handlePercentageChange = (loadId: string, value: string) => {
-    setPercentages(prev => ({ ...prev, [loadId]: value }));
-  };
+ const handlePercentageChange = (loadId: string, value: string) => {
+  setPercentages((prev) => ({
+    ...prev,
+    [loadId]: value,
+  }));
+};
 
 
 
-
-  const adjustments = data
-    .filter(d => parseFloat(d.gross_margin) <= 0)
-    .map(d => ({
-      ...d,
-      description: parseFloat(d.gross_margin) < 0 ? 'Negative margin' : 'Load with no profit',
-    }));
-
-
-  //Cálculos para totales
-  const totalGrossMargin = data.reduce((acc, d) => acc + parseFloat(d.gross_margin || '0'), 0);
-  const totalCommissions = data.reduce((acc, d) => {
-    const percent = parseFloat(percentages[d.load_id] ?? '0');
-    const gross = parseFloat(d.gross_margin || '0');
-    if (!isNaN(percent) && !isNaN(gross)) {
-      return acc + gross * (percent / 100);
-    }
-    return acc;
-  }, 0);
+    //componente de logica para calcular
+    const {
+    adjustments,
+    mainTableData,
+    totalGrossMargin,
+    totalCommissions,
+    totalAdjustmentCount,
+    totalAdjustmentCommissions,
+    totalGeneral,
+  } = calculateCommissionData(data, percentages);
 
 
-  return (
-    <div className="p-4">
-      <h1 className="text-xl font-bold mb-4">Consulta de Envíos por Broker</h1>
+return (
+  <div className="p-4 relative">
+    <h1 className="text-xl font-bold mb-4">Consulta de Envíos por Broker</h1>
 
-      {/* Filtros */}
-      <div className="flex flex-col md:flex-row gap-4 mb-4">
-        <select value={broker} onChange={(e) => setBroker(e.target.value)} className="border p-2 rounded">
-          <option value="">Selecciona un broker</option>
-          {brokers.map((b) => (
-            <option key={b} value={b}>{b}</option>
-          ))}
-        </select>
+    {/* Filtros */}
+    <div id="filtros-envios" className="flex flex-col md:flex-row gap-4 mb-4">
+      <select
+        value={broker}
+        onChange={(e) => setBroker(e.target.value)}
+        className="border p-2 rounded"
+      >
+        <option value="">Selecciona un broker</option>
+        {brokers.map((b) => (
+          <option key={b} value={b}>
+            {b}
+          </option>
+        ))}
+      </select>
 
-        <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="border p-2 rounded" />
-        <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="border p-2 rounded" />
+      <input
+        type="date"
+        value={from}
+        onChange={(e) => setFrom(e.target.value)}
+        className="border p-2 rounded"
+      />
+      <input
+        type="date"
+        value={to}
+        onChange={(e) => setTo(e.target.value)}
+        className="border p-2 rounded"
+      />
 
-        <button onClick={handleSearch} className="bg-blue-600 text-white px-4 py-2 rounded">Buscar</button>
-        <button onClick={() => navigate('/dashboard')} className="bg-gray-500 text-white px-4 py-2 rounded">Volver al Dashboard</button>
+      <button
+        onClick={handleSearch}
+        className="bg-blue-600 text-white px-4 py-2 rounded"
+      >
+        Buscar
+      </button>
+
+      <div className="flex gap-2">
+        <button
+          onClick={() => navigate('/dashboard')}
+          className="bg-gray-500 text-white px-4 py-2 rounded"
+        >
+          Volver al Dashboard
+        </button>
+        {broker === 'Calume' && (
+          <button
+            onClick={() => setShowSuggestions((prev) => !prev)}
+            className="bg-green-600 text-white px-4 py-2 rounded"
+          >
+            Sugerencia de porcentaje
+          </button>
+        )}
       </div>
+    </div>
 
-      {/* Resultados */}
-      {data.length > 0 ? (
-        <>
-          {/* Tabla principal */}
-          <table className="w-full border-collapse border border-black mb-4">
+
+{showSuggestions && (
+  <SugerenciasPorcentaje
+    broker={brokerSeleccionado}
+    onAplicar={manejarAplicacionDePorcentajes}
+    onClose={() => setShowSuggestions(false)}
+  />
+)}
+
+
+
+    {/* Resultados */}
+    {data.length > 0 ? (
+      <>
+        {/* Tabla principal */}
+        <table className="w-full border-collapse border border-black mb-4">
+          <thead>
+            <tr className="bg-gray-200">
+              <th className="border border-black px-2 py-1">Load Id</th>
+              <th className="border border-black px-2 py-1">Billing Date</th>
+              <th className="border border-black px-2 py-1">Customer</th>
+              <th className="border border-black px-2 py-1">Broker</th>
+              <th className="border border-black px-2 py-1">Percentage (%)</th>
+              <th className="border border-black px-2 py-1">Gross Marging</th>
+              <th className="border border-black px-2 py-1">Commision</th>
+            </tr>
+          </thead>
+          <tbody>
+            {mainTableData.map((d) => {
+              const inputValue = percentages[d.load_id] ?? '';
+              const parsedPercentage = parseFloat(inputValue);
+              const gross = parseFloat(d.gross_margin);
+              const resultado =
+                !isNaN(parsedPercentage) && !isNaN(gross)
+                  ? (gross * (parsedPercentage / 100)).toFixed(2)
+                  : '0.00';
+
+              return (
+                <tr key={d.load_id}>
+                  <td className="border border-black px-2 py-1">{d.load_id}</td>
+                  <td className="border border-black px-2 py-1">{new Date(d.billing_date).toLocaleDateString()}</td>
+                  <td className="border border-black px-2 py-1">{d.customer}</td>
+                  <td className="border border-black px-2 py-1">{d.broker}</td>
+                  
+  {/* Editable Percentage */}
+<td className="border border-black px-2 py-1">
+  <input
+    type="number"
+    step="any"
+    min="0"
+    max="100"
+    className="w-20 px-1 border border-black"
+    value={percentages[d.load_id] ?? ''}
+    onChange={(e) => handlePercentageChange(d.load_id, e.target.value)}
+  />
+</td>
+
+                  <td className="border border-black px-2 py-1">${gross.toFixed(2)}</td>
+                  <td className="border border-black px-2 py-1">${resultado}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+
+        {/* Totales */}
+        <h2 className="text-lg font-semibold mb-2">Comisiones</h2>
+        <table className="w-1/3 border-collapse border border-black mb-6">
+          <thead>
+            <tr className="bg-gray-300">
+              <th className="border border-black px-2 py-1">Total Commissions</th>
+              <th className="border border-black px-2 py-1">Total Gross Margin</th>
+              <th className="border border-black px-2 py-1">amount of commissions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td className="border border-black px-2 py-1">${totalCommissions.toFixed(2)}</td>
+              <td className="border border-black px-2 py-1">${totalGrossMargin.toFixed(2)}</td>
+              <td className="border border-black px-2 py-1">{mainTableData.length}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        {/* Tabla de ajustes */}
+        <h2 className="text-lg font-semibold mb-2">Adjustments</h2>
+        {adjustments.length > 0 ? (
+          <table className="w-full border-collapse border border-black">
             <thead>
-              <tr className="bg-gray-200">
-                <th className="border border-black px-2 py-1">ID</th>
-                <th className="border border-black px-2 py-1">Fecha</th>
-                <th className="border border-black px-2 py-1">Cliente</th>
-                <th className="border border-black px-2 py-1">Broker</th>
+              <tr className="bg-yellow-200">
+                <th className="border border-black px-2 py-1">Load ID</th>
+                <th className="border border-black px-2 py-1">Customer</th>
+                <th className="border border-black px-2 py-1">Description</th>
+                <th className="border border-black px-2 py-1">Gross Margin</th>
                 <th className="border border-black px-2 py-1">Percentage (%)</th>
-                <th className="border border-black px-2 py-1">Margen</th>
-                <th className="border border-black px-2 py-1">Resultado</th>
+                <th className="border border-black px-2 py-1">Commissions</th>
               </tr>
             </thead>
             <tbody>
-              {data.map((d) => {
-                const inputValue = percentages[d.load_id] ?? '';
+              {adjustments.map((adj) => {
+                const inputValue = percentages[adj.load_id] ?? '';
                 const parsedPercentage = parseFloat(inputValue);
-                const gross = parseFloat(d.gross_margin);
+                const gross = parseFloat(adj.gross_margin);
                 const resultado =
                   !isNaN(parsedPercentage) && !isNaN(gross)
                     ? (gross * (parsedPercentage / 100)).toFixed(2)
                     : '0.00';
 
                 return (
-                  <tr key={d.load_id}>
-                    <td className="border border-black px-2 py-1">{d.load_id}</td>
-                    <td className="border border-black px-2 py-1">{new Date(d.billing_date).toLocaleDateString()}</td>
-                    <td className="border border-black px-2 py-1">{d.customer}</td>
-                    <td className="border border-black px-2 py-1">{d.broker}</td>
-                    <td className="border border-black px-2 py-1">
-                      <input
-                        type="number"
-                        step="any"
-                        min="0"
-                        max="100"
-                        className="w-20 border border-black px-1"
-                        value={inputValue}
-                        onChange={(e) => handlePercentageChange(d.load_id, e.target.value)}
-                      />
-                    </td>
+                  <tr key={adj.load_id}>
+                    <td className="border border-black px-2 py-1">{adj.load_id}</td>
+                    <td className="border border-black px-2 py-1">{adj.customer}</td>
+                    <td className="border border-black px-2 py-1">{adj.description}</td>
                     <td className="border border-black px-2 py-1">${gross.toFixed(2)}</td>
+                      {/* Editable Percentage */}
+                    <td className="border border-black px-2 py-1">
+                    <input
+                    type="number"
+                    step="any"
+                    min="0"
+                    max="100"
+                    className="w-20 px-1 border border-black"
+                    value={percentages[adj.load_id] ?? ''}
+                    onChange={(e) => handlePercentageChange(adj.load_id, e.target.value)}
+                    />
+                    </td>
                     <td className="border border-black px-2 py-1">${resultado}</td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
+        ) : (
+          <p className="mt-2 text-gray-600">No hay ajustes para mostrar.</p>
+        )}
 
-          {/* Totales */}
-          <table className="w-1/3 border-collapse border border-black mb-6">
-            <thead>
-              <tr className="bg-gray-300">
-                <th className="border border-black px-2 py-1">Total Comisiones</th>
-                <th className="border border-black px-2 py-1">Total Gross Margin</th>
-                <th className="border border-black px-2 py-1">Cantidad Comisiones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td className="border border-black px-2 py-1">${totalCommissions.toFixed(2)}</td>
-                <td className="border border-black px-2 py-1">${totalGrossMargin.toFixed(2)}</td>
-                <td className="border border-black px-2 py-1">{data.length}</td>
-              </tr>
-            </tbody>
-          </table>
+        {/* Totales de Adjustments */}
+<h2 className="text-lg font-semibold mt-6 mb-2">Adjustments Summary</h2>
+<table className="w-1/2 border-collapse border border-black mb-6">
+  <thead>
+    <tr className="bg-yellow-300">
+      <th className="border border-black px-2 py-1">Number of settings</th>
+      <th className="border border-black px-2 py-1">Total Adjustment Commissions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td className="border border-black px-2 py-1">{totalAdjustmentCount}</td>
+      <td className="border border-black px-2 py-1">${totalAdjustmentCommissions.toFixed(2)}</td>
+    </tr>
+  </tbody>
+</table>
 
-          {/* Tabla de ajustes */}
-          <h2 className="text-lg font-semibold mb-2">Adjustments</h2>
-          {adjustments.length > 0 ? (
-            <table className="w-full border-collapse border border-black">
-              <thead>
-                <tr className="bg-yellow-200">
-                  <th className="border border-black px-2 py-1">Load ID</th>
-                  <th className="border border-black px-2 py-1">Customer</th>
-                  <th className="border border-black px-2 py-1">Description</th>
-                  <th className="border border-black px-2 py-1">Gross Margin</th>
-                  <th className="border border-black px-2 py-1">Commissions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {adjustments.map((adj) => (
-                  <tr key={adj.load_id}>
-                    <td className="border border-black px-2 py-1">{adj.load_id}</td>
-                    <td className="border border-black px-2 py-1">{adj.customer}</td>
-                    <td className="border border-black px-2 py-1">{adj.description}</td>
-                    <td className="border border-black px-2 py-1">${parseFloat(adj.gross_margin).toFixed(2)}</td>
-                    <td className="border border-black px-2 py-1">${adj.commissions ?? 'N/A'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <p className="mt-2 text-gray-600">No hay ajustes para mostrar.</p>
-          )}
-        </>
-      ) : (
-        <p className="mt-4 text-gray-600">No hay datos para mostrar.</p>
-      )}
-    </div>
-  );
+
+        {/* Tabla de deducciones */}
+        <h2 className="text-lg font-semibold mt-6 mb-2">Deductions</h2>
+        <table className="w-full border-collapse border border-black mb-4">
+          <thead>
+            <tr className="bg-red-300">
+              <th className="border border-black px-2 py-1">Type</th>
+              <th className="border border-black px-2 py-1">Description</th>
+              <th className="border border-black px-2 py-1">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td className="border border-black px-2 py-1">Ejemplo</td>
+              <td className="border border-black px-2 py-1">Penalización por atraso</td>
+              <td className="border border-black px-2 py-1">$0</td>
+            </tr>
+          </tbody>
+        </table>
+{/* Tabla de Totales Generales */}
+<h2 className="text-lg font-semibold mt-6 mb-2">grand totals</h2>
+<table className="w-1/2 border-collapse border border-black mb-6">
+  <thead>
+    <tr className="bg-green-300">
+      <th className="border border-black px-2 py-1">Description</th>
+      <th className="border border-black px-2 py-1">Amount</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td className="border border-black px-2 py-1">Total Comisiones</td>
+      <td className="border border-black px-2 py-1">${totalCommissions.toFixed(2)}</td>
+    </tr>
+    <tr>
+      <td className="border border-black px-2 py-1">Total Comisiones de Ajustes</td>
+      <td className="border border-black px-2 py-1">${totalAdjustmentCommissions.toFixed(2)}</td>
+    </tr>
+    {/* <tr>
+      <td className="border border-black px-2 py-1">Total Deducciones</td>
+      <td className="border border-black px-2 py-1">${totalDeductions.toFixed(2)}</td>
+    </tr> */}
+    <tr className="font-bold bg-gray-200">
+      <td className="border border-black px-2 py-1">Final amount</td>
+      <td className="border border-black px-2 py-1">${totalGeneral.toFixed(2)}</td>
+    </tr>
+  </tbody>
+</table>
+
+        
+      </>
+    ) : (
+      <p className="mt-4 text-gray-600">No hay datos para mostrar.</p>
+    )}
+
+    
+  </div>
+  
+);
 }
